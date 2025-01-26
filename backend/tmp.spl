@@ -1,0 +1,44 @@
+{
+	int a, b, m, n, r, percent, x, ruijo, increment, plus;
+
+
+        sprint ("You must give 2 integers.\n");
+        sprint ("First integer: ");
+        scan  (a);
+        sprint ("Second integer: ");
+        scan (b);
+        m = a; n = b;
+        
+        percent = m % n;
+        sprint("1: ");
+        iprint(percent);
+        sprint("\n");
+        
+        x = 10;
+        ruijo = x ^ n;
+        sprint("2&3: ");
+        iprint(ruijo);
+        sprint("\n");
+        
+        increment = m;
+        x = increment ++;
+        sprint("4: ");
+        iprint(x);
+        sprint("  ");
+        iprint(x ++);
+        sprint("  ");
+        iprint(x ++);
+        sprint("  ");
+        iprint(x);
+        sprint("  ");
+        iprint(x);
+        sprint("\n");
+
+        plus = m;
+        plus += n;
+        sprint("5 first + second: ");
+        iprint(plus);
+        sprint("\n");
+}
+
+

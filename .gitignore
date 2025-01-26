@@ -1,3 +1,4 @@
+.gitignore
 *.cmo
 *.cmi
 parser.ml

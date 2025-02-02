@@ -194,26 +194,37 @@ and trans_stmt ast nest tenv env =
                     ^ sprintf "\tadd %s, 1\n" var  (* カウンタのインクリメント *)
                     ^ sprintf "\tjmp L%d\n" l1     (* 次の反復へジャンプ *)
                     ^ sprintf "L%d:\n" l2          ループ終了ラベル *)
-| For (var, start, end_expr, body) ->
-    let l1 = incLabel() in
-    let l2 = incLabel() in
-    trans_stmt (Assign (Var var, start)) nest tenv env  (* 変数の初期化 *)
-    ^ sprintf "L%d:\n" l1     (* ループのスタート地点にラベル *)
-    ^ trans_var (Var var) nest env
-    ^ "\tpopq %rbx\n"
-    ^ trans_exp end_expr nest env  (* 終了条件の評価 *)
-    ^ "\tpopq %rax\n"
-    ^ "\tcmpq %rax, %rbx\n"
-    ^ sprintf "\tjge L%d\n" l2 (* 条件が満たされたらループ終了 *)
-    ^ trans_stmt body nest tenv env  (* ループ本体 *)
-    ^ trans_var (Var var) nest env
-    ^ "\tpopq %rbx\n"
-    ^ "\tincq %rbx\n"
-    ^ trans_var (Var var) nest env
-    ^ "\tpopq %rax\n"
-    ^ "\tmovq %rbx, (%rax)\n"
-    ^ sprintf "\tjmp L%d\n" l1     (* 次の反復へジャンプ *)
-    ^ sprintf "L%d:\n" l2          (*ループ終了ラベル*)
+                     (* for文のコード *)
+                     | For (id, e1, e2, s) -> 
+                      let gen_idx = trans_var (Var id) nest env in
+                      let loopL = incLabel() in
+                      let endL = incLabel() in
+                      (* 初期化 *)
+                      "# for loop\n"
+                      ^
+                      gen_idx
+                      ^ trans_exp e1 nest env
+                      ^ "\tpopq (%rax)\n"
+                      ^ trans_exp e2 nest env
+                      ^ "\tpopq %rbx\n"
+                      ^ sprintf "L%d:\n" loopL
+                      (* condition *)
+                      ^ "# for loop condition\n"
+                      ^ gen_idx
+                      ^ "\tmovq (%rax), %rcx\n"
+                      ^ "\tcmpq %rbx, %rcx\n"
+                      ^ sprintf "\tjge L%d\n" endL
+                      (* body *)
+                      ^ "# for loop body\n"
+                      ^ trans_stmt s nest tenv env
+                      (* ループ変数をインクリメントする *)
+                      ^ "# for loop increment\n"
+                      ^ gen_idx
+                      ^ "\tmovq (%rax), %rcx\n"
+                      ^ "\tincq %rcx\n"
+                      ^ "\tmovq %rcx, (%rax)\n"
+                      ^ sprintf "\tjmp L%d\n" loopL
+                      ^ sprintf "L%d:\n" endL
                   (* 空文 *)
                   | NilStmt -> ""
 (* 参照アドレスの処理 *)

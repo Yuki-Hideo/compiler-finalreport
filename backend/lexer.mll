@@ -27,6 +27,7 @@ rule lexer = parse
 | "else"              { store_token lexbuf; ELSE }
 | "do"                { store_token lexbuf; DO }
 | "while"             { store_token lexbuf; WHILE }
+| "for"               { store_token lexbuf; FOR }
 | "scan"              { store_token lexbuf; SCAN }
 | "sprint"            { store_token lexbuf; SPRINT }
 | "iprint"            { store_token lexbuf; IPRINT }

@@ -57,7 +57,7 @@
         }
         sprint("7 for: ");
         iprint(rlt);
-        iprint("/n");
+        sprint("\n");
 }
 
 

@@ -71,11 +71,11 @@ stmts: stmts stmt  { $1@[$2] }
      ;
 
 stmt : ID ASSIGN expr SEMI    { Assign (Var $1, $3) }
-     | ID ADD_ASSIGN expr { Assign (Var $1, $3)}
-     | ID LS expr RS ASSIGN expr SEMI  { Assign (IndexedVar (Var $1, $3), $6) }
+     | ID ADD_ASSIGN expr SEMI { Assign (Var $1, CallFunc("+", [VarExp (Var $1); $3])) }     | ID LS expr RS ASSIGN expr SEMI  { Assign (IndexedVar (Var $1, $3), $6) }
      | IF LP cond RP stmt     { If ($3, $5, None) }
      | IF LP cond RP stmt ELSE stmt 
                               { If ($3, $5, Some $7) }
+     | DO stmt WHILE LP cond RP { DoWhile ($2, $5) }
      | WHILE LP cond RP stmt  { While ($3, $5) }
      | SPRINT LP STR RP SEMI  { CallProc ("sprint", [StrExp $3]) }
      | IPRINT LP expr RP SEMI { CallProc ("iprint", [$3]) }
@@ -83,8 +83,9 @@ stmt : ID ASSIGN expr SEMI    { Assign (Var $1, $3) }
      | NEW LP ID RP SEMI   { CallProc ("new", [ VarExp (Var $3)]) }
      | ID LP aargs_opt RP SEMI  { CallProc ($1, $3) }
      | RETURN expr SEMI    { CallProc ("return", [$2]) }
-     | DO stmt WHILE LP expr RP SEMI { DoWhile ($2, $5) }
+     // | FOR LP ID ASSIGN expr TO expr RP stmt { For ($3, $5, $7, $9) }
      | FOR LP ID ASSIGN expr TO expr RP stmt { For ($3, $5, $7, $9) }
+     | FOR LP ID ASSIGN expr SEMI expr SEMI expr RP stmt { For ($3, $5, $9, $11) }
      | block { $1 }
      | SEMI { NilStmt }
      ;
@@ -112,7 +113,6 @@ expr : NUM { IntExp $1  }
      | expr MOD expr { CallFunc ("%", [$1; $3]) }
      | expr POW expr { CallFunc ("^", [$1; $3]) }
      | ID INCR       { CallFunc ("++", [VarExp (Var $1)]) }
-     // | ID ADD_ASSIGN expr { CallFunc ("+=", [VarExp (Var $1); $3]) }
      | LP expr RP  { $2 }
      ;
 

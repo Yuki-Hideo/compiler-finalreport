@@ -1,5 +1,5 @@
 {
-	int a, b, m, n, r, percent, x, ruijo, increment, plus;
+	int a, b, m, n, r, percent, x, ruijo, increment, plus, z, rlt;
 
 
         sprint ("You must give 2 integers.\n");
@@ -35,10 +35,29 @@
         sprint("\n");
 
         plus = m;
-        plus += m + n;
+        plus += n;
         sprint("5 first + second: ");
         iprint(plus);
         sprint("\n");
+
+
+        do {
+                plus += n;
+                sprint("loop: ");
+                iprint(plus);
+                sprint("\n");
+        } while(plus < 100);
+        sprint("6 dowhile: ");
+        iprint(plus);
+        sprint("\n");
+
+        rlt = 1;
+        for (z = 0 .. 5) {
+                rlt = rlt * 3;
+        }
+        sprint("7 for: ");
+        iprint(rlt);
+        iprint("/n");
 }
 
 

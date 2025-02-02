@@ -25,6 +25,7 @@ rule lexer = parse
 | digit+ as num       { store_token lexbuf; NUM (int_of_string num) }
 | "if"                { store_token lexbuf; IF }
 | "else"              { store_token lexbuf; ELSE }
+| "do"                { store_token lexbuf; DO }
 | "while"             { store_token lexbuf; WHILE }
 | "scan"              { store_token lexbuf; SCAN }
 | "sprint"            { store_token lexbuf; SPRINT }
@@ -50,6 +51,7 @@ rule lexer = parse
 | '^'                 { store_token lexbuf; POW }
 | "++"                { store_token lexbuf; INCR }
 | "+="                { store_token lexbuf; ADD_ASSIGN }
+| ".."                { store_token lexbuf; TO }
 | '{'                 { store_token lexbuf; LB  }
 | '}'                 { store_token lexbuf; RB  }
 | '['                 { store_token lexbuf; LS }

@@ -93,8 +93,8 @@ and type_stmt ast env =
           | Assign (v, e) -> 
                if (type_var v env) != (type_exp e env) then raise (TypeErr "type error 4")
           | If (e,_,_) -> type_cond e env
-          | While (e,_) -> type_cond e env
-          | DoWhile (s, e) -> type_stmt s env; check_int (type_exp e env)
+          | While (e, s) -> type_cond e env; type_stmt s env
+          | DoWhile (s, e) -> type_stmt s env; type_cond e env 
           | For (id, e1, e2, s) -> check_int (type_exp e1 env); check_int (type_exp e2 env); type_stmt s (update id (VarEntry {offset=0; level=0; ty=INT}) env)
           | NilStmt -> ()
 and type_var ast env =
@@ -130,6 +130,11 @@ and type_exp ast env =
                (check_int (type_var v env); check_int(type_exp right env); INT)
           | CallFunc ("!", [arg]) -> 
                (check_int (type_exp arg env); INT)
+          | CallFunc (op, [left; right]) when List.mem op ["<"; ">"; "<="; ">="; "=="; "!="] ->
+               let left_ty = type_exp left env in
+               let right_ty = type_exp right env in
+               if left_ty = INT && right_ty = INT then INT
+               else raise (TypeErr "type mismatch in comparison")
           | CallFunc (s, el) -> 
                let entry = env s in 
                   (match entry with

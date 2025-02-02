@@ -73,14 +73,22 @@ and trans_stmt ast nest tenv env =
                                     ^ trans_var v nest env
                                     ^ "\tpopq (%rax)\n"
                   (* +=のコード *)
-                   | Assign(v, e) -> 
+                   (* | Assign(v, e) -> 
                         trans_var v nest env
                         ^ "\tpopq %rax\n"
                         ^ "\tmovq (%rax), %rbx\n"
                         ^ trans_exp e nest env
                         ^ "\tpopq %rcx\n"
                         ^ "\taddq %rcx, %rbx\n"
-                        ^ "\tmovq %rbx, (%rax)\n"
+                        ^ "\tmovq %rbx, (%rax)\n" *)
+                  (* +=のコード *)
+                   | Assign (Var v, CallFunc ("+", [VarExp (Var v'); e])) when v = v' -> 
+                        trans_exp e nest env
+                        ^ trans_var (Var v) nest env
+                        ^ "\tpopq %rbx\n"
+                        ^ "\tmovq (%rax), %rcx\n"
+                        ^ "\taddq %rbx, %rcx\n"
+                        ^ "\tmovq %rcx, (%rax)\n"
                    (* iprintのコード *)
                    | CallProc ("iprint", [arg]) -> 
                            (trans_exp arg nest env
@@ -166,13 +174,14 @@ and trans_stmt ast nest tenv env =
                                        ^ sprintf "\tjmp L%d\n" l2
                                        ^ sprintf "L%d:\n" l1
                   (* dowhile文のコード*)
-                  | DoWhile (s, e) -> let l1 = incLabel() in
-                  let (condCode, l2) = trans_cond e nest env in
-                  sprintf "L%d:\n" l1
-                  ^ trans_stmt s nest tenv env
-                  ^ condCode
-                  ^ sprintf "\tjmp L%d\n" l1
-                  ^ sprintf "L%d:\n" l2
+                  | DoWhile (s, e) -> 
+                    let l1 = incLabel() in
+                    let (condCode, l2) = trans_cond e nest env in
+                    sprintf "L%d:\n" l1
+                    ^ trans_stmt s nest tenv env
+                    ^ condCode
+                    ^ sprintf "\tjmp L%d\n" l1
+                    ^ sprintf "L%d:\n" l2
                   (* for文のコード *)
                   (* | For (var, start, end_expr, body) ->
                     let l1 = incLabel() in
@@ -185,6 +194,26 @@ and trans_stmt ast nest tenv env =
                     ^ sprintf "\tadd %s, 1\n" var  (* カウンタのインクリメント *)
                     ^ sprintf "\tjmp L%d\n" l1     (* 次の反復へジャンプ *)
                     ^ sprintf "L%d:\n" l2          ループ終了ラベル *)
+| For (var, start, end_expr, body) ->
+    let l1 = incLabel() in
+    let l2 = incLabel() in
+    trans_stmt (Assign (Var var, start)) nest tenv env  (* 変数の初期化 *)
+    ^ sprintf "L%d:\n" l1     (* ループのスタート地点にラベル *)
+    ^ trans_var (Var var) nest env
+    ^ "\tpopq %rbx\n"
+    ^ trans_exp end_expr nest env  (* 終了条件の評価 *)
+    ^ "\tpopq %rax\n"
+    ^ "\tcmpq %rax, %rbx\n"
+    ^ sprintf "\tjge L%d\n" l2 (* 条件が満たされたらループ終了 *)
+    ^ trans_stmt body nest tenv env  (* ループ本体 *)
+    ^ trans_var (Var var) nest env
+    ^ "\tpopq %rbx\n"
+    ^ "\tincq %rbx\n"
+    ^ trans_var (Var var) nest env
+    ^ "\tpopq %rax\n"
+    ^ "\tmovq %rbx, (%rax)\n"
+    ^ sprintf "\tjmp L%d\n" l1     (* 次の反復へジャンプ *)
+    ^ sprintf "L%d:\n" l2          (*ループ終了ラベル*)
                   (* 空文 *)
                   | NilStmt -> ""
 (* 参照アドレスの処理 *)

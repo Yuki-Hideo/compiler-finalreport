@@ -2,13 +2,18 @@
 open Printf
 open Ast
 
+type token_info = {
+  token_string : string;
+  token_pos : Lexing.position;
+}
+
+let last_token = Lexer.current_token
+
 let parse_error msg =
-  let open Lexing in
-  let lexbuf = Lexing.from_channel stdin in  
-  let pos = Parsing.symbol_start_pos () in
-  let tok = Lexing.lexeme Lexing.lexbuf in
-  Printf.fprintf stderr "構文エラー: 行 %d、token: %s\n" 
-    pos.pos_lnum tok
+  let pos = !last_token.token_pos in
+  Printf.fprintf stderr "Syntax error: line %d、token: %s\n"
+    pos.pos_lnum
+    !last_token.token_string
 %}
 
 /* File parser.mly */
@@ -18,18 +23,17 @@ let parse_error msg =
 %token PLUS MINUS TIMES DIV LB RB LS RS LP RP ASSIGN SEMI COMMA TYPE VOID
 %type <Ast.stmt> prog
 
-
 %nonassoc GT LT EQ NEQ GE LE
 %left PLUS MINUS         /* lowest precedence */
 %left TIMES DIV         /* medium precedence */
 %nonassoc UMINUS      /* highest precedence */
-
 
 %start prog           /* the entry point */
 
 %%
 
 prog : stmt  {  $1  }
+     | error { NilStmt }
      ;
 
 ty   : INT { IntTyp }

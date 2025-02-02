@@ -3,6 +3,7 @@
 
         sprint ("You must give 2 integers.\n");
         sprint ("First integer: ");
+        int x = 0;
         scan  (a);
         sprint ("Second integer: ");
         scan (b);

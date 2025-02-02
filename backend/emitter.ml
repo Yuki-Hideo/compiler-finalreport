@@ -72,6 +72,15 @@ and trans_stmt ast nest tenv env =
                      Assign (v, e) -> trans_exp e nest env
                                     ^ trans_var v nest env
                                     ^ "\tpopq (%rax)\n"
+                  (* +=のコード *)
+                   | Assign(v, e) -> 
+                        trans_var v nest env
+                        ^ "\tpopq %rax\n"
+                        ^ "\tmovq (%rax), %rbx\n"
+                        ^ trans_exp e nest env
+                        ^ "\tpopq %rcx\n"
+                        ^ "\taddq %rcx, %rbx\n"
+                        ^ "\tmovq %rbx, (%rax)\n"
                    (* iprintのコード *)
                    | CallProc ("iprint", [arg]) -> 
                            (trans_exp arg nest env
@@ -262,15 +271,6 @@ and trans_exp ast nest env = match ast with
       ^ "\tpushq %rbx\n"
       ^ "\tincq %rbx\n"
       ^ "\tmovq %rbx, (%rax)\n"
-    (* +=のコード *)
-    | CallFunc ("+=", [VarExp v; right]) -> 
-      trans_var v nest env
-      ^ trans_exp right nest env
-      ^ "\tpopq %rbx\n"
-      ^ "\tmovq (%rax), %rcx\n"
-      ^ "\taddq %rbx, %rcx\n"
-      ^ "\tmovq %rcx, (%rax)\n"
-      ^ "\tpushq %rcx\n"
                   (* 反転のコード *)
                   | CallFunc("!",  arg::_) -> 
                                              trans_exp arg nest env

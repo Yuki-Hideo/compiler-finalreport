@@ -1,13 +1,19 @@
 %{
-
 open Printf
 open Ast
 
+type token_info = {
+  token_string : string;
+  token_pos : Lexing.position;
+}
+
+let last_token = Lexer.current_token
+
 let parse_error msg =
-  let open Lexing in
-  let pos = Parsing.symbol_start_pos () in
-  Printf.fprintf stderr "構文エラー: 行 %d\n" 
+  let pos = !last_token.token_pos in
+  Printf.fprintf stderr "Syntax error: line %d、token: %s\n"
     pos.pos_lnum
+    !last_token.token_string
 %}
 
 /* File parser.mly */
@@ -65,6 +71,7 @@ stmts: stmts stmt  { $1@[$2] }
      ;
 
 stmt : ID ASSIGN expr SEMI    { Assign (Var $1, $3) }
+     | ID ADD_ASSIGN expr { Assign (Var $1, $3)}
      | ID LS expr RS ASSIGN expr SEMI  { Assign (IndexedVar (Var $1, $3), $6) }
      | IF LP cond RP stmt     { If ($3, $5, None) }
      | IF LP cond RP stmt ELSE stmt 
@@ -105,7 +112,7 @@ expr : NUM { IntExp $1  }
      | expr MOD expr { CallFunc ("%", [$1; $3]) }
      | expr POW expr { CallFunc ("^", [$1; $3]) }
      | ID INCR       { CallFunc ("++", [VarExp (Var $1)]) }
-     | ID ADD_ASSIGN expr { CallFunc ("+=", [VarExp (Var $1); $3]) }
+     // | ID ADD_ASSIGN expr { CallFunc ("+=", [VarExp (Var $1); $3]) }
      | LP expr RP  { $2 }
      ;
 

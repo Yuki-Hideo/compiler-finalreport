@@ -35,7 +35,7 @@
         sprint("\n");
 
         plus = m;
-        plus += n;
+        plus += m + n;
         sprint("5 first + second: ");
         iprint(plus);
         sprint("\n");
